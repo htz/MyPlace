@@ -1,0 +1,213 @@
+<apex:page contentType="text/javascript" cache="false">
+(function($) {
+    $(function() {
+        var $map = $('#gmap');
+        var map, newMarker, markers = [], infowindow;
+        var $dialog = $('#dialog');
+        var dialogAnimation = false;
+        var $searchDialogBtn = $('#search-dialog-btn');
+        var searchSelectedTags;
+        var $newDialogBtn = $('#new-dialog-btn');
+        var $geoBtn = $('#geo');
+        var $loading = $('#loading');
+
+        var initMap = function() {
+            var opts = {
+                zoom: 10,
+                center: new google.maps.LatLng(35.6604005, 139.7290428),
+                mapTypeId: google.maps.MapTypeId.ROADMAP,
+                scaleControl: true,
+                zoomControl: false
+            };
+            map = new google.maps.Map($map[0], opts);
+            infowindow = new google.maps.InfoWindow();
+            search('', []);
+            if (navigator.geolocation) {
+                $geoBtn.click(function() {
+                    navigator.geolocation.getCurrentPosition(
+                        function(pos) {
+                            map.panTo(new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude));
+                        },
+                        function() {
+                            alert('現在地の取得に失敗しました');
+                        },
+                        {enableHighAccuracy: true, timeout: 6000, maximumAge: 60000}
+                    );
+                });
+                $geoBtn.trigger('click');
+            } else {
+                $geoBtn.hide();
+            }
+        };
+
+        var search = function(name, tagIds, callback) {
+            _.each(markers, function(marker) {
+                marker.setMap(null);
+            });
+            markers = [];
+
+            PlaceMapController.search(name, tagIds.join(','), function(res, e) {
+                _.each(res, function(r) {
+                    var marker = new google.maps.Marker({
+                        animation: google.maps.Animation.DROP,
+                        position: new google.maps.LatLng(r.Location__Latitude__s, r.Location__Longitude__s)
+                    });
+                    addMarkerClickListener(marker, r);
+                    setTimeout(function() {
+                        marker.setMap(map);
+                    }, Math.random() * 1000);
+                    markers.push(marker);
+                });
+                if (callback) callback();
+            });
+        };
+
+        var addMarkerClickListener = function(marker, r) {
+            var html = _.template('<a href="javascript: sforce.one.navigateToSObject(\'<%= Id %>\');"><%- Name %></a>')(r);
+            google.maps.event.addListener(marker, 'click', function() {
+                infowindow.setContent(html);
+                infowindow.open(map, marker);
+            });
+        };
+
+        var initDialog = function() {
+            $dialog.on('click', '#tags > li > a', function() {
+                var id = $(this).attr('data-tag-id');
+                $(this).toggleClass('unselected');
+                searchSelectedTags[id] = !$(this).hasClass('unselected');
+            });
+            $('#do-search', $dialog).click(function() {
+                var tagIds = [];
+                var name = $('#search #keyword', $dialog).val();
+                $('#search #tags > li > a:not(.unselected)', $dialog).each(function() {
+                    tagIds.push($(this).attr('data-tag-id'));
+                });
+                search(name, tagIds, function() {
+                    closeDialog($searchDialogBtn);
+                });
+            });
+            $('#do-create', $dialog).click(function() {
+                // save
+                $loading.show();
+                var tagIds = [];
+                var name = $('#create #placename', $dialog).val();
+                $('#create #tags > li > a:not(.unselected)', $dialog).each(function() {
+                    tagIds.push($(this).attr('data-tag-id'));
+                });
+                PlaceMapController.addPlace(name, newMarker.getPosition().lat(), newMarker.getPosition().lng(), tagIds.join(','), function(res, e) {
+                    $('#create #placename', $dialog).val('');
+                    $loading.hide();
+                    addMarkerClickListener(newMarker, res);
+                    markers.push(newMarker); // infowindow
+                    newMarker = null;
+                    closeDialog($newDialogBtn);
+                });
+            });
+        };
+        var closeDialog = function($btn, callback) {
+            if (dialogAnimation) return;
+            dialogAnimation = true;
+            $dialog.one('webkitTransitionEnd', function() {
+                $('.dialog-content', $dialog).hide();
+                $map.removeClass('blur');
+                if (callback) callback();
+                dialogAnimation = false;
+            });
+            $btn.removeClass('open');
+            $btn.siblings('.dialog-btn').removeClass('disabled');
+            $dialog.removeClass('open');
+            $geoBtn.removeClass('disabled');
+        };
+        var openDialog = function($btn, id, callback) {
+            if (dialogAnimation) return;
+            dialogAnimation = true;
+            $('.dialog-content#' + id, $dialog).show();
+            $dialog.one('webkitTransitionEnd', function() {
+                if (callback) callback();
+                dialogAnimation = false;
+            });
+            $btn.addClass('open');
+            $btn.siblings('.dialog-btn').addClass('disabled');
+            $geoBtn.addClass('disabled');
+            $dialog.addClass('open');
+            $map.addClass('blur');
+            // set tag items
+            var $tags = $('#dialog #tags');
+            var template = _.template($('#' + id + ' .tagTemplate').text());
+            $('li', $tags).remove();
+            PlaceMapController.placeTags(function(res, e) {
+                _.each(res, function(t) {
+                    $tags.append(template(t));
+                });
+                if (id === 'search') {
+                    if (_.isUndefined(searchSelectedTags)) {
+                        searchSelectedTags = {};
+                        _.each(res, function(t) {
+                            searchSelectedTags[t.Id] = true;
+                        });
+                    } else {
+                        $('li > a', $tags).each(function() {
+                            var id = $(this).attr('data-tag-id');
+                            $(this).toggleClass('unselected', !searchSelectedTags[id]);
+                        });
+                    }
+                }
+            });
+        };
+
+        var initButtons = function() {
+            // search button
+            $searchDialogBtn
+            .on('touchmove', function(e) {
+                e.preventDefault();
+                e.stopPropagation() 
+            })
+            .click(function() {
+                if ($searchDialogBtn.hasClass('open')) {
+                    closeDialog($searchDialogBtn);
+                } else {
+                   openDialog($searchDialogBtn, 'search');
+                }
+            });
+            // new dialog button
+            $newDialogBtn
+            .on('touchmove', function(e) {
+                e.preventDefault();
+                e.stopPropagation() 
+            })
+            .click(function() {
+                if ($newDialogBtn.hasClass('open')) {
+                    newMarker.setMap(null);
+                    newMarker = null;
+                    closeDialog($newDialogBtn);
+                } else if ($newDialogBtn.hasClass('selected')) {
+                    google.maps.event.clearListeners(map, 'click');
+                    $newDialogBtn.removeClass('selected');
+                    $newDialogBtn.siblings('.dialog-btn').removeClass('disabled');
+                } else {
+                   // openDialog($newDialogBtn, 'create');
+                    google.maps.event.addListenerOnce(map, 'click', function(e) {
+                        newMarker = new google.maps.Marker({
+                            map: map,
+                            animation: google.maps.Animation.DROP,
+                            position: e.latLng
+                        });
+                        $newDialogBtn.addClass('open');
+                        $newDialogBtn.removeClass('selected');
+                        setTimeout(function() {
+                            openDialog($newDialogBtn, 'create');
+                        }, 500);
+                    });
+                    $newDialogBtn.addClass('selected');
+                    $newDialogBtn.siblings('.dialog-btn').addClass('disabled');
+                }
+            });
+        };
+
+        FastClick.attach(document.body);
+        initMap();
+        initDialog();
+        initButtons();
+    });
+})(Zepto);
+</apex:page>

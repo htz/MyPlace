@@ -1,0 +1,256 @@
+<apex:page contentType="text/css" cache="false">
+* {
+    box-sizing: border-box;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight: normal;
+    font-weight: normal;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    text-decoration: none;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+}
+
+input, select, textarea {
+    -webkit-user-select: auto;
+}
+
+button.btn {
+    color: white;
+}
+
+body {
+    background: #344a5f !important;
+}
+
+#gmap {
+    position: absolute;
+    bottom: 0;
+    top: 0;
+    width: 100%;
+    &.blur {
+        -webkit-filter: blur(3px);
+
+        &:before {
+            background: #344a5f;
+            bottom: 0;
+            content: "";
+            display: block;
+            opacity: .7;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1;
+        }
+    }
+}
+
+#geo {
+    background: rgba(42, 147, 213, 1);
+    bottom: 14px;
+    font-size: 24px;
+    height: 44px;
+    left: 14px;
+    padding: 0;
+    position: absolute;
+    width: 44px;
+    -webkit-transition: all .2s ease-in;
+
+    &:after {
+        background: white;
+        content: "";
+        display: block;
+        height: 44px;
+        left: 0;
+        position: absolute;
+        top: 0;
+        width: 44px;
+        
+        -webkit-mask-image: url({!URLFOR($Resource.namie_resources, 'imgs/geo.png')});
+        -webkit-mask-position: center center;
+        -webkit-mask-repeat: no-repeat;
+        -webkit-mask-size: 32px 32px;
+    }
+    &.disabled {
+        left: -44px;
+    }
+}
+
+.dialog-btn {
+    background: rgba(42, 147, 213, 1);
+    bottom: 14px;
+    font-size: 24px;
+    height: 44px;
+    padding: 0;
+    position: absolute;
+    width: 44px;
+    z-index: 1000000;
+    -webkit-transition: all .2s ease-in;
+
+    &.open, &.selected {
+        background: rgba(42, 147, 213, 0);
+        right: 14px !important;
+        -webkit-transform: rotate(45deg);
+        &:active {
+            background: transparent !important;
+            opacity: .7;
+        }
+        &:before {
+            content: "\e027";
+        }
+    }
+    &.disabled {
+        opacity: 0;
+    }
+
+    &#search-dialog-btn {
+        right: 14px;
+    }
+    &#new-dialog-btn {
+        right: 64px;
+    }
+}
+
+#dialog {
+    bottom: -100%;
+    position: fixed;
+    top: 100%;
+    width: 100%;
+    -webkit-transition: all .2s ease-in;
+    z-index: 10;
+
+    &.open {
+        bottom: 0;
+        top: 0;
+    }
+
+    > .dialog-content {
+        display: none;
+        height: 100%;
+        width: 100%;
+
+        .btn.bg-primary-btn {
+            bottom: 18px;
+            display: block;
+            left: 18px;
+            position: absolute;
+            width: calc(~'100% - 80px');
+        }
+
+        #tags {
+            overflow: hidden;
+            padding: 0;
+    
+            li {
+                display: block;
+                float: left;
+                //height: 120px;
+    
+                &:last-child:after {
+                    clear: both;
+                    content: "";
+                    display: block;
+                    height: 0;
+                    position: absolute;
+                }
+                a {
+                    display: block;
+                    overflow: hidden;
+                    position: relative;
+                    height: 100%;
+                    text-align: center;
+    
+                    &.unselected {
+                        background: lightgray !important;
+                    }
+                    img {
+                        width: 80px;
+                    }
+                    span {
+                        bottom: 0;
+                        color: white;
+                        display: block;
+                        font-size: 12px;
+                        height: 14px;
+                        line-height: 14px;
+                        position: absolute;
+                        text-align: center;
+                        white-space: nowrap;
+                        width: 100%;
+                    }
+                }
+            }
+    
+            @media screen and (min-width: 801px) {
+                li {
+                    width: 10%;
+                }
+            }
+            @media screen and (max-width: 800px) and (min-width: 641px) {
+                li {
+                    width: 16%;
+                    &:nth-child(6n + 1) ,&:nth-child(6n + 2), &:nth-child(6n + 3), &:nth-child(6n + 4) {
+                        width: 17%;
+                    }
+                }
+            }
+            @media screen and (max-width: 640px) and (min-width: 321px) {
+                li {
+                    width: 20%;
+                }
+            }
+            @media screen and (max-width: 320px) {
+                li {
+                    width: 25%;
+                    height: 90px;
+                }
+            }
+        }
+    }
+}
+
+.rotating-frames() {
+    from {
+        -webkit-transform: rotate(0deg);
+    }
+    to {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+@-webkit-keyframes rotating {
+    .rotating-frames;
+}
+
+#loading {
+    background: black;
+    bottom: 0;
+    display: none;
+    opacity: .65;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 10000000;
+    > div {
+        color: white;
+        font-size: 36px;
+        height: 36px;
+        left: 50%;
+        margin-left: -18px;
+        margin-top: -18px;
+        position: absolute;
+        top: 50%;
+        width: 36px;
+        background-position: 50%;
+        -webkit-animation: rotating 2s linear infinite;
+        &:before {
+            left: 0;
+            line-height: 36px;
+            position: absolute;
+            top: 0;
+        }
+    }
+}
+
+</apex:page>

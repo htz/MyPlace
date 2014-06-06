@@ -1,0 +1,73 @@
+<apex:page controller="PlaceMapController" sidebar="false" showheader="false" cache="false" docType="html-5.0" applyBodyTag="false" applyHtmlTag="false" standardStylesheets="false">
+<html>
+<head>
+    <meta name="format-detection" content="telephome=no" />
+    <link rel="stylesheet/less" type="text/css" href="{!$Page.PlaceMapLess}" />
+    <link rel="stylesheet/less" type="text/css" href="{!URLFOR($Resource.s1style, 'styles.css')}" />
+    <link rel="stylesheet/less" type="text/css" href="{!URLFOR($Resource.s1style, 'icons.css')}" />
+    <script src="{!URLFOR($Resource.namie_resources, 'libs/less.min.js')}"></script>
+    <script src="{!URLFOR($Resource.namie_resources, 'libs/zepto.min.js')}"></script>
+    <script src="{!URLFOR($Resource.namie_resources, 'libs/underscore-min.js')}"></script>
+    <script src="{!URLFOR($Resource.namie_resources, 'libs/angular.min.js')}"></script>
+    <script src="{!URLFOR($Resource.namie_resources, 'libs/fastclick.min.js')}"></script>
+    <script src="https://maps.google.com/maps/api/js?sensor=false"></script>
+    <script src="/canvas/sdk/js/publisher.js"></script>
+</head>
+<body>
+    <div id="gmap"></div>
+
+    <button id="geo" class="btn bg-primary-btn btn--primary pvs brm no-border"></button>
+    <button id="search-dialog-btn" class="dialog-btn btn bg-primary-btn btn--primary pvs brm no-border sg-icon-art center tc icon-utility-search"></button>
+    <button id="new-dialog-btn" class="dialog-btn btn bg-primary-btn btn--primary pvs brm no-border sg-icon-art center tc icon-utility-checkin"></button>
+
+    <div id="dialog">
+        <div id="search" class="dialog-content">
+            <div class="mbm pos-rel">
+                <label for="keyword" class="size-full icon-utility-search pos-abs text-color-3 label--lookup">
+                    <span class="tha">検索キーワード</span>
+                </label>
+                <input type="text" name="keyword" id="keyword" placeholder="検索キーワード" class="size-full ht-44 plm prx pvm input input--default input--ph-1 input--focus-1" />
+            </div>
+            <ul id="tags" class="mbm">
+                <script class="tagTemplate" type="text/template">
+                    <li>
+                        <a href="#" data-tag-id="<%- Id %>" style="background: <%- Color__c %>">
+                            <img src="<%- IconURL__c %>" alt="<%- Name %>" />
+                            <span><%- Name %></span>
+                        </a>
+                    </li>
+                </script>
+            </ul>
+            <button id="do-search" class="btn bg-primary-btn btn--primary pvs size-full brm no-border">
+                <span class="text-color-5 f3 fw-semibold">検索</span>
+            </button>
+        </div>
+        <div id="create" class="dialog-content">
+            <div class="mbm pos-rel">
+                <label for="placename" class="size-full icon-utility-search pos-abs text-color-3 label--lookup">
+                    <span class="tha">場所名</span>
+                </label>
+                <input type="text" name="placename" id="placename" placeholder="場所名" class="size-full ht-44 plm prx pvm input input--default input--ph-1 input--focus-1" />
+            </div>
+            <ul id="tags" class="mbm">
+                <script class="tagTemplate" type="text/template">
+                    <li>
+                        <a href="#" data-tag-id="<%- Id %>" class="unselected" style="background: <%- Color__c %>">
+                            <img src="<%- IconURL__c %>" alt="<%- Name %>" />
+                            <span><%- Name %></span>
+                        </a>
+                    </li>
+                </script>
+            </ul>
+            <button id="do-create" class="btn bg-primary-btn btn--primary pvs size-full brm no-border">
+                <span class="text-color-5 f3 fw-semibold">作成</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="loading"><div class="sg-icon-art sg-icn--fnt center tc icon-utility-spinner"></div></div>
+
+    <script src="{!$Page.PlaceMapJs}"></script>
+</body>
+</html>
+</apex:page>
