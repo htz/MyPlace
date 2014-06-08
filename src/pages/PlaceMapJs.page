@@ -2,6 +2,7 @@
 (function($) {
     $(function() {
         var $map = $('#gmap');
+        var geocoder = new google.maps.Geocoder();
         var map, newMarker, markers = [], infowindow;
         var $dialog = $('#dialog');
         var dialogAnimation = false;
@@ -88,17 +89,31 @@
             });
             $('#do-create', $dialog).click(function() {
                 // save
-                $loading.show();
                 var tagIds = [];
                 var name = $('#create #placename', $dialog).val();
+                if (name == '') {
+                    alert('名前を入力して下さい。');
+                    return;
+                }
+                var address = $('#address').val();
+                if (address == '') {
+                    if (!confirm('まだ住所が取得できていないか、取得に失敗しました。空のまま保存しますか？')) {
+                        return;
+                    }
+                }
                 $('#create #tags > li > a:not(.unselected)', $dialog).each(function() {
                     tagIds.push($(this).attr('data-tag-id'));
                 });
-                PlaceMapController.addPlace(name, newMarker.getPosition().lat(), newMarker.getPosition().lng(), tagIds.join(','), function(res, e) {
+                if (tagIds.length == 0) {
+                    alert('タグを1つ以上選択して下さい。');
+                    return;
+                }
+                $loading.show();
+                PlaceMapController.addPlace(name, address, newMarker.getPosition().lat(), newMarker.getPosition().lng(), tagIds.join(','), function(res, e) {
                     $('#create #placename', $dialog).val('');
                     $loading.hide();
                     addMarkerClickListener(newMarker, res);
-                    markers.push(newMarker); // infowindow
+                    markers.push(newMarker);
                     newMarker = null;
                     closeDialog($newDialogBtn);
                 });
@@ -186,7 +201,12 @@
                     $newDialogBtn.siblings('.dialog-btn').removeClass('disabled');
                 } else {
                    // openDialog($newDialogBtn, 'create');
+                   $('#address').val('');
                     google.maps.event.addListenerOnce(map, 'click', function(e) {
+                        geocoder.geocode({'latLng': e.latLng}, function(results, status) {
+                            if (results.length === 0) return;
+                            $('#address').val(results[0].formatted_address);
+                        });
                         newMarker = new google.maps.Marker({
                             map: map,
                             animation: google.maps.Animation.DROP,

@@ -13,7 +13,8 @@ private class PlaceMapControllerTest {
     static testMethod void allTest() {
         ID tagId = newTag('hoge', '#ff00ff', '/test.png');
         PlaceMapController.placeTags();
-        PlaceMapController.addPlace('test', 0, 0, tagId); 
+        PlaceMapController.addPlace('test', 'address', 0, 0, tagId); 
         PlaceMapController.search('test', tagId);
+        PlaceMapController.search('test', null);
     }
 }
