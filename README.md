@@ -89,4 +89,4 @@ Force.com IDEを利用してインストールを行う場合には本ソース�
 
 # デモ動画
 
-[![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/PiAYD3l38hY/0.jpg)](http://www.youtube.com/watch?v=PiAYD3l38hY)
+[![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/PG_a68hnSvA/0.jpg)](http://www.youtube.com/watch?v=PG_a68hnSvA)
