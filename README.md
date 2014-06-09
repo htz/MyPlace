@@ -87,3 +87,6 @@ Force.com IDEを利用してインストールを行う場合には本ソース�
 ## 場所の付加情報
 場所オブジェクト(Place__c)については初期状態では住所, 位置情報のみ管理しています。例えば、電話番号や評価等をカスタムオブジェクトで追加することで様々な情報も管理可能です。
 
+# デモ動画
+
+[![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/PiAYD3l38hY/0.jpg)](http://www.youtube.com/watch?v=PiAYD3l38hY)
